@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mass-web
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount.web }}
   selector:
     matchLabels:
       app: mass-web
@@ -15,9 +15,27 @@ spec:
       containers:
         - name: web
           image: "{{ .Values.image.web.repository }}:{{ .Values.image.web.tag }}"
+          imagePullPolicy: {{ .Values.image.web.pullPolicy }}
           ports:
-            - containerPort: 3000
+            - containerPort: {{ .Values.service.web.port }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.name }}
           env:
             - name: NEXT_PUBLIC_API_URL
               value: "{{ .Values.env.apiUrl }}"
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.web.readiness.path }}
+              port: {{ .Values.service.web.port }}
+            initialDelaySeconds: {{ .Values.probes.web.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.web.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.web.liveness.path }}
+              port: {{ .Values.service.web.port }}
+            initialDelaySeconds: {{ .Values.probes.web.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.web.liveness.periodSeconds }}
+          resources:
+{{ toYaml .Values.resources.web | indent 12 }}
 

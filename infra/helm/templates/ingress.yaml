@@ -1,0 +1,34 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: mass-mvp
+  {{- with .Values.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: mass-api
+                port:
+                  number: {{ .Values.service.api.port }}
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: mass-web
+                port:
+                  number: {{ .Values.service.web.port }}
+  {{- with .Values.ingress.tls }}
+  tls:
+{{ toYaml . | indent 4 }}
+  {{- end }}
+{{- end }}

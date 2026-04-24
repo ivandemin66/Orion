@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: mass-api
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount.api }}
   selector:
     matchLabels:
       app: mass-api
@@ -15,11 +15,29 @@ spec:
       containers:
         - name: api
           image: "{{ .Values.image.api.repository }}:{{ .Values.image.api.tag }}"
+          imagePullPolicy: {{ .Values.image.api.pullPolicy }}
           ports:
-            - containerPort: 4000
+            - containerPort: {{ .Values.service.api.port }}
+          envFrom:
+            - secretRef:
+                name: {{ .Values.secrets.name }}
           env:
             - name: APP_URL
               value: "{{ .Values.env.appUrl }}"
             - name: API_URL
               value: "{{ .Values.env.apiUrl }}"
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.probes.api.readiness.path }}
+              port: {{ .Values.service.api.port }}
+            initialDelaySeconds: {{ .Values.probes.api.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.api.readiness.periodSeconds }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.probes.api.liveness.path }}
+              port: {{ .Values.service.api.port }}
+            initialDelaySeconds: {{ .Values.probes.api.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.api.liveness.periodSeconds }}
+          resources:
+{{ toYaml .Values.resources.api | indent 12 }}
 

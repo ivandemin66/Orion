@@ -1,0 +1,20 @@
+{{- if .Values.autoscaling.web.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: mass-web
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: mass-web
+  minReplicas: {{ .Values.autoscaling.web.minReplicas }}
+  maxReplicas: {{ .Values.autoscaling.web.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.autoscaling.web.targetCPUUtilizationPercentage }}
+{{- end }}

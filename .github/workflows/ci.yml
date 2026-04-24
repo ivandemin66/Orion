@@ -5,7 +5,7 @@ on:
   pull_request:
 
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -17,5 +17,41 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --no-frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm build
       - run: pnpm test:ci
+      - name: Scan source and dependencies
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+
+  image-scan:
+    runs-on: ubuntu-latest
+    needs: quality
+    strategy:
+      matrix:
+        include:
+          - image_name: mass-api-ci
+            dockerfile: apps/api/Dockerfile
+          - image_name: mass-web-ci
+            dockerfile: apps/web/Dockerfile
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          tags: ${{ matrix.image_name }}:ci
+          load: true
+      - name: Scan image
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: ${{ matrix.image_name }}:ci
+          severity: HIGH,CRITICAL
+          exit-code: "1"
 

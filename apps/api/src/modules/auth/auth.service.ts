@@ -1,4 +1,5 @@
 import { ConflictException, Injectable, UnauthorizedException } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { JwtService } from "@nestjs/jwt";
 import * as argon2 from "argon2";
 import { PrismaService } from "../shared/prisma.service.js";
@@ -8,7 +9,8 @@ import { LoginDto, RegisterDto } from "./dto/auth.dto.js";
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService
   ) {}
 
   async register(input: RegisterDto) {
@@ -62,14 +64,16 @@ export class AuthService {
 
   private async issueTokens(userId: string, email: string) {
     const payload = { sub: userId, email, role: "user" };
+    const accessSecret = this.configService.getOrThrow<string>("JWT_ACCESS_SECRET");
+    const refreshSecret = this.configService.getOrThrow<string>("JWT_REFRESH_SECRET");
 
     const accessToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_ACCESS_SECRET,
+      secret: accessSecret,
       expiresIn: "15m"
     });
 
     const refreshToken = await this.jwtService.signAsync(payload, {
-      secret: process.env.JWT_REFRESH_SECRET,
+      secret: refreshSecret,
       expiresIn: "30d"
     });
 

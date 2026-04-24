@@ -2,13 +2,103 @@ image:
   api:
     repository: mass/api
     tag: latest
+    pullPolicy: IfNotPresent
   web:
     repository: mass/web
     tag: latest
+    pullPolicy: IfNotPresent
 
 env:
   apiUrl: http://mass-api:4000
   appUrl: http://mass-web:3000
+
+replicaCount:
+  api: 1
+  web: 1
+
+service:
+  api:
+    type: ClusterIP
+    port: 4000
+  web:
+    type: ClusterIP
+    port: 3000
+
+ingress:
+  enabled: false
+  className: nginx
+  annotations: {}
+  host: mass.local
+  tls: []
+
+probes:
+  api:
+    readiness:
+      path: /api/health
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    liveness:
+      path: /api/health
+      initialDelaySeconds: 15
+      periodSeconds: 20
+  web:
+    readiness:
+      path: /
+      initialDelaySeconds: 5
+      periodSeconds: 10
+    liveness:
+      path: /
+      initialDelaySeconds: 15
+      periodSeconds: 20
+
+resources:
+  api:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  web:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 300m
+      memory: 384Mi
+
+autoscaling:
+  api:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+  web:
+    enabled: false
+    minReplicas: 1
+    maxReplicas: 3
+    targetCPUUtilizationPercentage: 70
+
+secrets:
+  name: mass-mvp-secrets
+  create: true
+  data:
+    DATABASE_URL: ""
+    REDIS_URL: ""
+    JWT_ACCESS_SECRET: ""
+    JWT_REFRESH_SECRET: ""
+    APP_URL: ""
+    API_URL: ""
+
+externalSecret:
+  enabled: false
+  name: mass-mvp-secrets
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: ""
+  target:
+    creationPolicy: Owner
+  data: []
 
 postgresql:
   enabled: true
