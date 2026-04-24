@@ -1,0 +1,144 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String             @id @default(cuid())
+  email          String             @unique
+  passwordHash   String
+  role           String             @default("user")
+  tokenBalance   Int                @default(1000000)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  sessions       Session[]
+  runs           Run[]
+  ledgerEntries  TokenLedgerEntry[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  userId       String
+  refreshToken String
+  userAgent    String?
+  ipAddress    String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TokenLedgerEntry {
+  id                String   @id @default(cuid())
+  userId            String
+  runId             String?
+  direction         String
+  amount            Int
+  promptTokens      Int      @default(0)
+  completionTokens  Int      @default(0)
+  cachedTokens      Int      @default(0)
+  estimatedCostUsd  Float    @default(0)
+  provider          String?
+  model             String?
+  createdAt         DateTime @default(now())
+  user              User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ProviderCredential {
+  id         String   @id @default(cuid())
+  providerKey String
+  label      String
+  baseUrl    String
+  apiKey     String
+  isEnabled  Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Run {
+  id             String           @id @default(cuid())
+  userId         String
+  prompt         String
+  projectType    String
+  providerPolicy String
+  status         String           @default("queued")
+  softLimit      Int
+  hardLimit      Int
+  spentTokens    Int              @default(0)
+  summary        String?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+  user           User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  steps          RunStep[]
+  executions     AgentExecution[]
+  artifacts      Artifact[]
+}
+
+model RunStep {
+  id             String   @id @default(cuid())
+  runId          String
+  agent          String
+  status         String   @default("pending")
+  reservedTokens Int
+  startedAt      DateTime?
+  finishedAt     DateTime?
+  run            Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+}
+
+model AgentExecution {
+  id               String   @id @default(cuid())
+  runId            String
+  stepId           String?
+  agent            String
+  provider         String
+  model            String
+  status           String
+  promptTokens     Int      @default(0)
+  completionTokens Int      @default(0)
+  cachedTokens     Int      @default(0)
+  estimatedCostUsd Float    @default(0)
+  latencyMs        Int      @default(0)
+  errorCode        String?
+  createdAt        DateTime @default(now())
+  run              Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+}
+
+model Artifact {
+  id        String   @id @default(cuid())
+  runId      String
+  step       String
+  kind       String
+  title      String
+  content    String
+  version    Int
+  createdAt  DateTime @default(now())
+  run        Run      @relation(fields: [runId], references: [id], onDelete: Cascade)
+}
+
+model McpServer {
+  id             String   @id @default(cuid())
+  name           String
+  transport      String
+  endpoint       String
+  isEnabled      Boolean  @default(true)
+  allowedAgents  String[]
+  toolBudget     Int      @default(100)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model ToolInvocationAudit {
+  id         String   @id @default(cuid())
+  runId      String?
+  serverId   String?
+  agent      String
+  toolName   String
+  status     String
+  durationMs Int
+  createdAt  DateTime @default(now())
+}
+

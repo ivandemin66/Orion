@@ -1,0 +1,18 @@
+image:
+  api:
+    repository: mass/api
+    tag: latest
+  web:
+    repository: mass/web
+    tag: latest
+
+env:
+  apiUrl: http://mass-api:4000
+  appUrl: http://mass-web:3000
+
+postgresql:
+  enabled: true
+
+redis:
+  enabled: true
+

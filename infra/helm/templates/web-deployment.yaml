@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mass-web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mass-web
+  template:
+    metadata:
+      labels:
+        app: mass-web
+    spec:
+      containers:
+        - name: web
+          image: "{{ .Values.image.web.repository }}:{{ .Values.image.web.tag }}"
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NEXT_PUBLIC_API_URL
+              value: "{{ .Values.env.apiUrl }}"
+

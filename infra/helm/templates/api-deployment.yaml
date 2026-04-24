@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mass-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mass-api
+  template:
+    metadata:
+      labels:
+        app: mass-api
+    spec:
+      containers:
+        - name: api
+          image: "{{ .Values.image.api.repository }}:{{ .Values.image.api.tag }}"
+          ports:
+            - containerPort: 4000
+          env:
+            - name: APP_URL
+              value: "{{ .Values.env.appUrl }}"
+            - name: API_URL
+              value: "{{ .Values.env.apiUrl }}"
+
