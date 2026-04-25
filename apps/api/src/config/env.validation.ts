@@ -8,7 +8,12 @@ const envSchema = z.object({
   JWT_ACCESS_SECRET: z.string().min(32, "JWT_ACCESS_SECRET must be at least 32 chars."),
   JWT_REFRESH_SECRET: z.string().min(32, "JWT_REFRESH_SECRET must be at least 32 chars."),
   APP_URL: z.string().url("APP_URL must be a valid URL."),
-  API_URL: z.string().url("API_URL must be a valid URL.")
+  API_URL: z.string().url("API_URL must be a valid URL."),
+  SBER_API_URL: z.string().url("SBER_API_URL must be a valid URL.").optional(),
+  SBER_OAUTH_URL: z.string().url("SBER_OAUTH_URL must be a valid URL.").optional(),
+  SBER_SCOPE: z.string().min(1, "SBER_SCOPE must not be empty.").optional(),
+  SBER_AUTH_KEY: z.string().min(1, "SBER_AUTH_KEY must not be empty.").optional(),
+  SBER_API_KEY: z.string().min(1, "SBER_API_KEY must not be empty.").optional()
 });
 
 export type AppEnv = z.infer<typeof envSchema>;

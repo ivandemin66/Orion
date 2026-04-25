@@ -103,4 +103,3 @@ export function shouldStopRun(run: WorkflowRun, result: AgentResult): boolean {
 function hasCriticalRisk(risks: string[]): boolean {
   return risks.some((risk) => risk.toLowerCase().includes("critical"));
 }
-

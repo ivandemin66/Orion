@@ -1,7 +1,7 @@
 {
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
-    "jsx": "react-jsx",
+    "jsx": "preserve",
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,
@@ -14,7 +14,10 @@
       {
         "name": "next"
       }
-    ]
+    ],
+    "allowJs": true,
+    "incremental": true,
+    "isolatedModules": true
   },
   "include": [
     "**/*.ts",
